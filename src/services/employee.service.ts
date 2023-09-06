@@ -1,5 +1,4 @@
 import Employee from "../models/employee.model";
-const { Employee } = require("../postgres/models");
 
 export async function getAllEmployees(): Promise<Employee[]> {
     const employees = await Employee.findAll();
@@ -8,12 +7,12 @@ export async function getAllEmployees(): Promise<Employee[]> {
 }
 
 export async function createEmployee(newEmployee: Employee): Promise<Employee> {
-    const createdEmployee = await Employee.create(newEmployee);
+    const createdEmployee = newEmployee.save();
 
     return createdEmployee;
 }
 
-export async function getEmployee(empId: string): Promise<Employee> {
+export async function getEmployee(empId: string): Promise<Employee | null> {
     const employee = await Employee.findOne({
         where: { id: empId }
     });

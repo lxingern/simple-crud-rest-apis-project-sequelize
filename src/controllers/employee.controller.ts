@@ -1,6 +1,12 @@
-import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
+import { Request, Response, NextFunction } from "express";
 import Employee, { employeeSchema } from "../models/employee.model";
-import { createEmployee, deleteEmployee, getAllEmployees, getEmployee, updateEmployee } from "../services/employee.service";
+import { 
+    createEmployee, 
+    deleteEmployee, 
+    getAllEmployees, 
+    getEmployee, 
+    updateEmployee 
+} from "../services/employee.service";
 
 export async function getAllEmployeesHandler(req: Request, res: Response, next: NextFunction) {
     const employees = await getAllEmployees();
@@ -8,15 +14,15 @@ export async function getAllEmployeesHandler(req: Request, res: Response, next: 
     return res.json(employees);
 }
 
-export async function createEmployeeHandler(req: Request<{}, {}, Employee>, res: Response, next: NextFunction) {
-    const newEmployee = req.body;
-
-    const { error, value: validatedEmployee } = employeeSchema.validate(newEmployee);
+export async function createEmployeeHandler(req: Request, res: Response, next: NextFunction) {
+    const { error, value: validatedEmployee } = employeeSchema.validate(req.body);
     if (error) {
         return res.status(400).json({ error: error.message });
     }
+    
+    const employeeToCreate = new Employee(validatedEmployee);
 
-    const createdEmployee = await createEmployee(validatedEmployee);
+    const createdEmployee = await createEmployee(employeeToCreate);
 
     return res.status(200).json(createdEmployee);
 }
@@ -31,7 +37,7 @@ export async function getEmployeeHandler(req: Request<{ empId: string }>, res: R
     return res.json(employee);
 }
 
-export async function updateEmployeeHandler(req: Request<{ empId: string }, {}, Employee>, res: Response, next: NextFunction) {
+export async function updateEmployeeHandler(req: Request<{ empId: string }>, res: Response, next: NextFunction) {
     const empId = req.params.empId;
     const employeeToUpdate = await getEmployee(empId);
     const updatedDetails = req.body;
@@ -44,11 +50,12 @@ export async function updateEmployeeHandler(req: Request<{ empId: string }, {}, 
         return res.status(404).json({ error: "Employee not found."});
     }
 
-    const { error, value: validatedEmployee } = employeeSchema.validate(updatedDetails);
+    const { error, value: validatedEmployeeData } = employeeSchema.validate(updatedDetails);
     if (error) {
         return res.status(400).json({ error: error.message });
     }
 
+    const validatedEmployee = new Employee(validatedEmployeeData)
     if (areEmployeesSame(validatedEmployee, employeeToUpdate)) {
         return res.sendStatus(304);
     }

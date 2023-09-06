@@ -1,11 +1,5 @@
+import { Table, Model, Column, PrimaryKey, DataType, CreatedAt, UpdatedAt } from "sequelize-typescript";
 import Joi from "joi";
-
-type Employee = {
-    id: string | undefined;
-    name: string;
-    salary: number | string;
-    department: "HR" | "PS";
-}
 
 export const employeeSchema = Joi.object({
     name: Joi.string()
@@ -18,4 +12,36 @@ export const employeeSchema = Joi.object({
         .required()
 });
 
-export default Employee;
+enum Departments {
+    HR = "HR",
+    PS = "PS"
+}
+
+@Table({
+    tableName: "employees"
+})
+export default class Employee extends Model {
+    @PrimaryKey
+    @Column({
+        type: DataType.UUID,
+        defaultValue: DataType.UUIDV4
+    })
+    id!: any;
+
+    @Column
+    name!: string;
+
+    @Column
+    salary!: number;
+
+    @Column
+    department!: Departments;
+
+    @CreatedAt
+    @Column
+    createdAt!: Date;
+
+    @UpdatedAt
+    @Column
+    updatedAt!: Date;
+}
